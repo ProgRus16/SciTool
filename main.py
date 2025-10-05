@@ -1,4 +1,5 @@
 from fractions import Fraction
+import math
 class CustomError(Exception):
     def __init__(self, *args):
         if args:
@@ -237,16 +238,18 @@ def PolyDivide(A, B):
 
     return (Q, R)
 
-# ---------- Алгоритм Евклида ----------
+# ---------- Глава 1. Algebraic Preliminaries ----------
 
 def Euclidean(a, b):
+    """Euclidean algorithm"""
     while b != [0]:
         q, r = PolyDivide(a, b)
         a = b
         b = r
     return a
 
-def HalfExtendedEuclidean(a, b):
+def FirstHalfExtendedEuclidean(a, b):
+    """Half extended Euclidean algorithm"""
     a1 = [1] 
     b1 = [0]
     while b != [0]:
@@ -259,10 +262,13 @@ def HalfExtendedEuclidean(a, b):
     return (a1, a)
 
 def FirstExtendedEuclidean(a, b):
-    s, g = HalfExtendedEuclidean(a, b)
+    """Extended Euclidean algorithm - \"half/full\" diophantine version"""
+    s, g = FirstHalfExtendedEuclidean(a, b)
     t, r = PolyDivide(poly_subtract(g, PolyMultiply(s, a)), b)
     return (s, t, g)
-def ExtendedEuclidean(a, b, c):
+
+def HalfExtendedEuclidean(a, b, c):
+    """Half extended Euclidean algorithm - diophantine version"""
     s, t, g = FirstExtendedEuclidean(a, b)
     q, r = PolyDivide(c, g)
     if r != [0]:
@@ -274,6 +280,23 @@ def ExtendedEuclidean(a, b, c):
         s = r
         t = poly_sum(t, PolyMultiply(q, a))
     return (s, t)
+
+def ExtendedEuclidean(a, b, c):
+    """Extended Euclidean algorithm - \"half/full\" diophantine version"""
+    s,t = HalfExtendedEuclidean(a, b, c)
+    t, r = PolyDivide(poly_subtract(c, PolyMultiply(s, a)), b)
+    return (s, t)
+
+def FirstPartialFraction(a, d):
+    """Partial fraction decomposition"""
+    a0, r = PolyDivide(a, math.prod(d))
+    if len(d) == 1: return (a0, r)
+    a1, t = ExtendedEuclidean(d[1:], d[0], r)
+    b0, a = FirstPartialFraction(t, d[1:])
+    return (poly_sum(a0, b0), a)
+
+def PartialFraction(a, d, e): #TODO
+    pass
 # ---------- Вспомогательные функции (для совместимости) ----------
 
 def deg(poly):
@@ -284,7 +307,7 @@ def lc(poly):
 
 def nu(p):
     if len(p) == 1:
-        return [abs(nu[0])]
+        return [abs(p[0])]
     else:
         return deg(p)
 # ---------- Пример использования ----------
